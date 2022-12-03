@@ -244,7 +244,7 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
           fehler "Sicherung konnte nicht erstellt werden"
         fi
         echo 60
-        wget -O ~/ebesucher/restart.sh https://gitea.zephyreone.ddnss.de/Pakobbix/passiv-income/raw/branch/master/restart.sh
+        wget -O ~/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
         echo 80
         chmod +x ~/ebesucher/restart.sh
         echo 90
