@@ -20,7 +20,7 @@ unzip -qqo config.zip
 sleep 60s
 # Starte Ebesucher Firefox
 docker_run(){
-  if [ -z username ]; then
+  if [ -z "$username" ]; then
     # Funktion zum starten des Containers, falls username nicht gesetzt
     docker run -d --name="$containername" -p 3000:5800 -v "$git_dir"/config:/config:rw -m "$1" --shm-size 2g jlesage/firefox
     else
