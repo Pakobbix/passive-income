@@ -238,11 +238,7 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
         echo 25
         cd ~/ebesucher/ || exit
         echo 30
-        if zip -r config.zip config/; then
-          erfolg "Sicherung von Firefox für ebesucher erfolgreich erstellt"
-        else
-          fehler "Sicherung konnte nicht erstellt werden"
-        fi
+        zip -r config.zip config/
         echo 60
         wget -O ~/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
         echo 80
