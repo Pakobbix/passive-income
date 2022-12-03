@@ -184,8 +184,13 @@ Dieser soll im Hintergrund die Werbeseiten aufrufen."
       if [ -d ~/ebesucher ]; then
         skip "Ordner ebesucher exestiert bereits"
         if ! [ -f ~/ebesucher/config.zip ]; then
-          wget -O ~/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
-          unzip ~/ebesucher/config.zip -d ~/ebesucher/
+          if whiptail --title "Alte config gefunden" --yesno "Es wurde bereits ein Firefox Profil angelegt, soll dieses gelöscht und überschrieben werden?" 20 100; then
+            rm -f ~/ebesucher/config.zip
+            wget -O ~/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
+            unzip ~/ebesucher/config.zip -d ~/ebesucher/
+          else
+            unzip ~/ebesucher/config.zip -d ~/ebesucher/
+          fi
         fi
       else
         if [ "$linux_user" == "root" ]; then
