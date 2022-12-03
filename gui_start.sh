@@ -247,6 +247,7 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
         wget -O ~/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
         echo 80
         chmod +x ~/ebesucher/restart.sh
+        bash ~/ebesucher/restart.sh
         echo 90
         sed -i "s/username=/&$nutzername/g" ~/ebesucher/restart.sh
         echo 100
