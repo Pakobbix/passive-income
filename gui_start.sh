@@ -68,12 +68,12 @@ linux_user=$(who | awk '{print $1}')
     sudo apt-get update
   fi
   echo 100
-} | whiptail --gauge "Aktualisiere System und Füge Docker den System-Repositories hinzu" 6 50 0
+} | whiptail --gauge "Aktualisiere System installiere Docker" 6 50 0
 
 if ! which docker >/dev/null; then
   messagebox "Kleinen Moment Geduld, Docker wird Installiert." "Das Fenster wird sich automatisch schließen, sobald Docker installiert wurde." &
   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin >/dev/null
-  messagebox "Docker wurde installiert" "Leider ist es notwendig, dass wir nun den PC Neustarten.\nNach dem Neustart, starte einfach von vorne. Es wird dann aber durchlaufen"
+  messagebox "Docker wurde installiert" "Leider ist es notwendig, dass wir nun den PC Neustarten.\nNach dem Neustart, starte einfach von vorne. Das Skript wird dann aber durchlaufen"
   sudo usermod -aG docker $linux_user
   sudo reboot
 fi
