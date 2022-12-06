@@ -265,11 +265,13 @@ Selbst wenn der Container mal abstürzen sollte, wird er nächste Stunde wieder 
       crontab -l >/tmp/ebesucher 2>/dev/null
       if [ "$linux_user" == "root" ]; then
         if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
-          echo "0 * * * * /bin/bash /root/ebesucher/restart.sh" >>/tmp/ebesucher
+          echo "0 * * * * /bin/bash /root/ebesucher/restart.sh
+          @reboot /bin/bash /root/ebesucher/restart.sh" >>/tmp/ebesucher
         fi
       else
         if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
-          echo "0 * * * * /bin/bash /home/$linux_user/ebesucher/restart.sh" >>/tmp/ebesucher
+          echo "0 * * * * /bin/bash /home/$linux_user/ebesucher/restart.sh
+          @reboot /bin/bash /home/$linux_user/ebesucher/restart.sh" >>/tmp/ebesucher
           crontab /tmp/ebesucher
           rm /tmp/ebesucher
         fi
@@ -303,10 +305,12 @@ if ! grep -q "update_system.sh" "/tmp/updatecron"; then
     rm /tmp/updatecron
   fi
 fi
-if docker run -d --name watchtower --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/localtime:/etc/localtime:ro containrrr/watchtower --cleanup --interval 86400; then
-  erfolg "Watchtower erfolgreich eingerichtet"
-else
-  fehler "Watchtower konnte nicht eingerichtet werden"
+if docker ps | grep "ebesucher\|traffmonetizer\|peer2profit\|IPRoyal\|packetstream\|honeygain" >/dev/null; then
+  if docker run -d --name watchtower --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/localtime:/etc/localtime:ro containrrr/watchtower --cleanup --interval 86400; then
+    erfolg "Watchtower erfolgreich eingerichtet"
+  else
+    fehler "Watchtower konnte nicht eingerichtet werden"
+  fi
 fi
-messagebox "FERTIG!" "Wir sind nun Fertig! Ich hoffe das alles geklappt hat, wenn nicht, erstelle ein Issue auf https://gitea.zephyreone.ddnss.de/Pakobbix/passiv-income/issues"
+messagebox "FERTIG!" "Wir sind nun Fertig! Ich hoffe das alles geklappt hat, wenn nicht, erstelle ein Issue auf https://github.com/Pakobbix/passive-income/issues"
 new_task "${green}$erfolgreich Erfolgreiche Operationen\n${red}$fehler Fehlerhafte Operationen\n${cyan}$skip Übersprungene Operationen${white}"
