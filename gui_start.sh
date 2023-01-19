@@ -48,7 +48,7 @@ sudo echo
 if ! which whiptail >/dev/null; then
   sudo apt-get install whiptail -y
 fi
-linux_user=$(who | awk '{print $1}')
+linux_user=$(w | awk '{print $1}' | tail -n1)
 {
   echo 0
   sudo apt-get update >/dev/null
