@@ -26,10 +26,10 @@ sleep 60s
 docker_run(){
   if [ -z "$username" ]; then
     # Funktion zum starten des Containers, falls username nicht gesetzt
-    docker run -d --name="$containername" -p 3000:5800 -v "$git_dir"/config:/config:rw -m "$1" --cpus "$CPUcores" --shm-size 2g jlesage/firefox
+    docker run -d --name="$containername" -p 3000:5800 -u $(awk -v user=$(whoami) -F':' '$0 ~ user {print $3}' /etc/passwd) -v "$git_dir"/config:/config:rw -m "$1" --cpus "$CPUcores" --shm-size 2g jlesage/firefox
     else
     # Funktion zum starten von Firefox immer mit der Surfbar (Verhindert dass bei Updates Firefox ein "neue Features" Tab über der Surfbar öffnet)
-    docker run -d --name="$containername" -p 3000:5800 -e FF_OPEN_URL="https://ebesucher.com/surfbar/$username" -m "$1" --cpus "$CPUcores" -v "$git_dir"/config:/config:rw --shm-size 2g jlesage/firefox
+    docker run -d --name="$containername" -p 3000:5800 -u $(awk -v user=$(whoami) -F':' '$0 ~ user {print $3}' /etc/passwd) -e FF_OPEN_URL="https://ebesucher.com/surfbar/$username" -m "$1" --cpus "$CPUcores" -v "$git_dir"/config:/config:rw --shm-size 2g jlesage/firefox
   fi
 }
 
