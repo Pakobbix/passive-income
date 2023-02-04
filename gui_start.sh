@@ -290,13 +290,11 @@ Dieser soll im Hintergrund die Werbeseiten aufrufen."
 				}
 				# Check how much ram is available.
 				ram_avail=$(bc <<<"scale=2;$(($(free | awk 'NR==2 {print $2}') / 1000000))")
-				if [[ $ram_avail -ge "2" ]]; then
-					# create ebesucher docker container with specific RAM available (around 1 GB less then available)
-					ebesucher_docker "1g"
-				elif [[ $ram_avail -eq "4" ]]; then
-					ebesucher_docker "3g"
+				# create ebesucher docker container with specific RAM available (around 1 GB less then available)
+				if ((ram_avail >= 3 && ram_avail <= 4)); then
+					ebesucher_docker "3g" "$CPUSet"
 				elif [[ $ram_avail -ge "5" ]]; then
-					ebesucher_docker "4g"
+					ebesucher_docker "4g" "$CPUSet"
 				fi
 				messagebox "" "Oben Rechts im Firefox Browser, öffne das Ebesucher addon.
 Gebe in das Feld deinen Ebesucher Nutzernamen ein und mache einen Haken bei Privacy"
@@ -400,10 +398,8 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
 				}
 				# Check how much ram is available.
 				ram_avail=$(bc <<<"scale=2;$(($(free | awk 'NR==2 {print $2}') / 1000000))")
-				if [[ $ram_avail -ge "2" ]]; then
-					# create ebesucher docker container with specific RAM available (around 1 GB less then available)
-					ebesucher_docker "1g" "$CPUSet"
-				elif [[ $ram_avail -eq "4" ]]; then
+				# create ebesucher docker container with specific RAM available (around 1 GB less then available)
+				if ((ram_avail >= 3 && ram_avail <= 4)); then
 					ebesucher_docker "3g" "$CPUSet"
 				elif [[ $ram_avail -ge "5" ]]; then
 					ebesucher_docker "4g" "$CPUSet"
