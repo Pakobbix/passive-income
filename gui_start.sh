@@ -391,7 +391,7 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
 				done
 				# Ebesucher docker creation function. Will be used in the next step
 				ebesucher_docker() {
-					if docker rm -f ebesucher || true && docker run -d --name=ebesucher -p 3000:5800 -u $(awk -v user=$(whoami) -F':' '$0 ~ user {print $3}' /etc/passwd) -m "$1" --cpus "$2" -v ~/ebesucher/config:/config:rw --shm-size 2g jlesage/firefox; then
+					if docker rm -f ebesucher || true && docker run -d --name=ebesucher -p 3000:5800 -m "$1" --cpus "$2" -v ~/ebesucher/config:/config:rw --shm-size 2g jlesage/firefox; then
 						erfolg "Firefox-Ebesucher wurde eingerichtet"
 						messagebox "Jetzt bist du gefragt!" "Öffne im browser deiner Wahl von einem anderen Gerät aus $(hostname -I | awk '{print $1}'):3000"
 					else
