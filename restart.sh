@@ -35,10 +35,9 @@ docker_run(){
 
 # Überprüfe wieviel Arbeitsspeicher vorhanden ist, um bei Geräten mit weniger als 4 GB 1 GB als Sicherungs zu haben.
 ram_avail=$(bc <<<"scale=2;$(($(free | awk 'NR==2 {print $2}') / 1000000))")
-if [[ $ram_avail -ge "2" ]]; then
-  docker_run "1g" "$CPUcores"
-elif [[ $ram_avail -eq "4" ]]; then
-  docker_run "3g" "$CPUcores"
+if ((ram_avail >= 3 && ram_avail <= 4)); then
+	ebesucher_docker "3g" "$CPUSet"
 elif [[ $ram_avail -ge "5" ]]; then
-  docker_run "4g" "$CPUcores"
+	ebesucher_docker "4g" "$CPUSet"
 fi
+
