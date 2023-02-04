@@ -243,7 +243,7 @@ Ebesucher braucht leider etwas mehr Einrichtung. Aber keine Sorge, ich mach es d
 Zunächst erstellen wir einen Firefox Container. 
 Dieser soll im Hintergrund die Werbeseiten aufrufen."
 			# Ebesucher Configuration if user = root
-			if [ "$linux_user" == "root" ]; then
+			if [ "$linux_user" == "root" ] || [ "$linux_user" == "USER" ]; then
 				# Check if ebesucher folder already exists
 				if [ -d /root/ebesucher ]; then
 					skip "Ordner ebesucher exestiert bereits"
@@ -485,7 +485,7 @@ else
 fi
 
 if docker ps | grep -q "ebesucher\|traffmonetizer\|peer2profit\|IPRoyal\|packetstream\|honeygain"; then
-	if docker ps -a | grep -i "containerr/watchtower"; then
+	if ! docker ps -a | grep -i "containerr/watchtower"; then
 		if docker run -d --name watchtower --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/localtime:/etc/localtime:ro containrrr/watchtower --cleanup --interval 86400; then
 			erfolg "Watchtower erfolgreich eingerichtet"
 		else
