@@ -190,7 +190,7 @@ else
 			wget -qO- https://brightdata.com/static/earnapp/install.sh >/tmp/earnapp.sh
 			RandomID=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
 			chmod +x /tmp/earnapp.sh
-			sed -i "s/RID=.*/RID=$RandomID/g"
+			sed -i "s/RID=.*/RID=$RandomID/g" /tmp/earnapp.sh
 			echo "yes" | sudo bash /tmp/earnapp.sh
 			read -n1 -r -p "Drücke eine Taste, wenn du den Link im Browser geöffnet hast und das Gerät mit deinem Account verlinkt wurde..." key
 			;;
