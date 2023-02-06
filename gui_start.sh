@@ -53,6 +53,9 @@ inputbox() {
 	whiptail --title "$1" --inputbox "$2" 30 100 3>&1 1>&2 2>&3
 }
 
+ebesucher_folder_root="/root/ebesucher"
+ebesucher_folder_user="/home/"$linux_user"/ebesucher/"
+
 # get the last logged in User
 linux_user=$(w | awk '{print $1}' | tail -n1)
 
@@ -188,7 +191,10 @@ else
 			#######################
 		EarnAPP)
 			wget -qO- https://brightdata.com/static/earnapp/install.sh >/tmp/earnapp.sh
-			RandomID=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
+			RandomID=$(
+				tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+				echo ''
+			)
 			chmod +x /tmp/earnapp.sh
 			sed -i "s/RID=.*/RID=$RandomID/g" /tmp/earnapp.sh
 			echo "yes" | sudo bash /tmp/earnapp.sh
@@ -308,30 +314,30 @@ Gebe in das Feld deinen Ebesucher Nutzernamen ein und mache einen Haken bei Priv
 erstelle ich eine Sicherung der Firefox-Konfiguration"
 				{
 					echo 10
-					if [ -f /root/ebesucher/config.zip ]; then
+					if [ -f $ebesucher_folder_root/config.zip ]; then
 						# delete blank config.zip
-						rm -f /root/ebesucher/config.zip
+						rm -f $ebesucher_folder_root/config.zip
 					fi
 					echo 15
 					docker stop ebesucher
 					echo 20
-					cd /root/ebesucher/ || exit
+					cd $ebesucher_folder_root || exit
 					echo 30
 					# pack config folder into new config.zip
 					sudo zip -r config.zip config/
 					echo 40
 					# download restart script
-					wget -O /root/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
+					wget -O $ebesucher_folder_root/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
 					echo 60
 					# make restart skript executable
-					chmod +x /root/ebesucher/restart.sh
+					chmod +x $ebesucher_folder_root/restart.sh
 					echo 70
 					# add username to restart skript
-					sed -i "s/username=/&$nutzername/g" /root/ebesucher/restart.sh
+					sed -i "s/username=/&$nutzername/g" $ebesucher_folder_root/restart.sh
 					echo 80
-					sed -i "s/CPUcores=/CPUcores=$CPUSet/g" /root/ebesucher/restart.sh
+					sed -i "s/CPUcores=/CPUcores=$CPUSet/g" $ebesucher_folder_root/restart.sh
 					echo 90
-					bash /root/ebesucher/restart.sh
+					bash $ebesucher_folder_root/restart.sh
 					echo 100
 				} | whiptail --gauge "Erstelle Sicherung und Lade Restarter Skript herunter" 6 50 0
 				# Export current crontab
@@ -351,35 +357,35 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
 			else
 				# Ebesucher Configuration if user != root
 				# Check if ebesucher folder already exists
-				if [ -d /home/"$linux_user"/ebesucher ]; then
+				if [ -d $ebesucher_folder_user ]; then
 					skip "Ordner ebesucher exestiert bereits"
 					# check if config exists, if yes, ask to overwrite
-					if [ -f /home/"$linux_user"/ebesucher/config.zip ]; then
+					if [ -f $ebesucher_folder_user/config.zip ]; then
 						if whiptail --title "Alte config gefunden" --yesno "Es wurde bereits ein Firefox Profil angelegt, soll dieses gelöscht und überschrieben werden?" 20 100; then
 							# remove old config
-							rm -f /home/"$linux_user"/ebesucher/config.zip
+							rm -f $ebesucher_folder_user/config.zip
 							# download blank config
-							wget -O /home/"$linux_user"/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
+							wget -O $ebesucher_folder_user/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
 							# unpack config
-							unzip -o /home/"$linux_user"/ebesucher/config.zip -d /home/"$linux_user"/ebesucher/
+							unzip -o $ebesucher_folder_user/config.zip -d $ebesucher_folder_user
 						else
 							# unpack config
-							unzip -o /home/"$linux_user"/ebesucher/config.zip -d /home/"$linux_user"/ebesucher/
+							unzip -o $ebesucher_folder_user/config.zip -d $ebesucher_folder_user
 						fi
 					fi
 				else
 					# Create ebesucher folder
-					if [ -d /home/"$linux_user"/ebesucher ]; then
+					if [ -d $ebesucher_folder_user ]; then
 						# download config
-						wget -O /home/"$linux_user"/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
+						wget -O $ebesucher_folder_user/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
 						# unpack config
-						unzip -o /home/"$linux_user"/ebesucher/config.zip -d /home/"$linux_user"/ebesucher/
+						unzip -o $ebesucher_folder_user/config.zip -d /home/"$linux_user"/ebesucher/
 					fi
-					if mkdir /home/"$linux_user"/ebesucher; then
+					if mkdir $ebesucher_folder_user; then
 						# download config
-						wget -O /home/"$linux_user"/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
+						wget -O $ebesucher_folder_user/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
 						# unpack config
-						unzip -o /home/"$linux_user"/ebesucher/config.zip -d /home/"$linux_user"/ebesucher/
+						unzip -o $ebesucher_folder_user/config.zip -d /home/"$linux_user"/ebesucher/
 						erfolg "Ordner für ebesucher konnte erstellt werden"
 					else
 						fehler "Der Ordner für ebesucher konnte nicht angelegt werden"
@@ -416,14 +422,14 @@ Gebe in das Feld deinen Ebesucher Nutzernamen ein und mache einen Haken bei Priv
 erstelle ich eine Sicherung der Firefox-Konfiguration"
 				{
 					echo 10
-					if [ -f /home/"$linux_user"/ebesucher/config.zip ]; then
+					if [ -f $ebesucher_folder_user/config.zip ]; then
 						# delete blank config.zip
-						sudo rm -f /home/"$linux_user"/ebesucher/config.zip 2>/dev/null
+						sudo rm -f $ebesucher_folder_user/config.zip 2>/dev/null
 					fi
 					echo 15
 					docker stop ebesucher
 					echo 20
-					cd /home/"$linux_user"/ebesucher/ || exit
+					cd $ebesucher_folder_user || exit
 					echo 30
 					# pack config folder into new config.zip
 					zip -r config.zip config/ 2>/dev/null
@@ -431,17 +437,17 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
 					# Give rights back to user
 					sudo chown "$linux_user":"$linux_user" config.zip
 					# download restart script
-					wget -O /home/"$linux_user"/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
+					wget -O $ebesucher_folder_user/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
 					echo 50
 					# add username to restart skript
-					sed -i "s/username=/&$nutzername/g" /home/"$linux_user"/ebesucher/restart.sh
+					sed -i "s/username=/&$nutzername/g" $ebesucher_folder_user/restart.sh
 					echo 60
 					# Add RAM and CPU Settings to restart script
-					sed -i "s/CPUcores=/CPUcores=$CPUSet/g" /home/"$linux_user"/ebesucher/restart.sh
+					sed -i "s/CPUcores=/CPUcores=$CPUSet/g" $ebesucher_folder_user/restart.sh
 					# make restart skript executable
-					chmod +x /home/"$linux_user"/ebesucher/restart.sh
+					chmod +x $ebesucher_folder_user/restart.sh
 					echo 80
-					bash /home/"$linux_user"/ebesucher/restart.sh
+					bash $ebesucher_folder_user/restart.sh
 					echo 100
 				} | whiptail --gauge "Erstelle Sicherung und Lade Restarter Skript herunter" 6 50 0
 				# Export current crontab
