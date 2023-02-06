@@ -153,7 +153,7 @@ Traffmonetizer. Vermiete deine IP-Adresse als Proxy
 https://traffmonetizer.com/?aff=607897" 32 80
 
 # Selection menu.
-einzurichten=$(whiptail --title "Was möchtest du Einrichten?" --separate-output --checklist "Wähle was du einrichten möchtest:\n\nMit Leertaste haken entfernen/hinzufügen.\nMit Enter bestätigen" 18 100 7 "Ebesucher" "Ruft werbepartner links auf und Zahlt dich in Punkten aus " ON "Honeygain" "Vermiete deine IP-Adresse als Proxy" ON "Peer2Profit" "Vermiete deine IP-Adresse als Proxy" ON "EarnAPP" "Vermiete deine IP-Adresse als Proxy" ON "Packetstream" "Vermiete deine IP-Adresse als Proxy" ON "Pawns.app" "Vermiete deine IP-Adresse als Proxy" ON "Traffmonetizer" "Vermiete deine IP-Adresse als Proxy" ON 3>&1 1>&2 2>&3)
+einzurichten=$(whiptail --title "Was möchtest du Einrichten?" --separate-output --checklist "Wähle was du einrichten möchtest:\n\nMit Leertaste haken entfernen/hinzufügen.\nMit Enter bestätigen" 18 100 7 "Ebesucher" "Ruft werbepartner links auf und Zahlt dich in Punkten aus " ON "Honeygain" "Vermiete deine IP-Adresse als Proxy" ON "Peer2Profit" "Vermiete deine IP-Adresse als Proxy" ON "EarnAPP" "Vermiete deine IP-Adresse als Proxy" ON "Packetstream" "Vermiete deine IP-Adresse als Proxy" ON "Pawns.app" "Vermiete deine IP-Adresse als Proxy" ON "Traffmonetizer" "Vermiete deine IP-Adresse als Proxy" ON "Repocket" "Vermiete deine IP-Adresse als Proxy" ON 3>&1 1>&2 2>&3)
 if [ -z "$einzurichten" ]; then
 	echo "Nichts wurde ausgewählt"
 	exit
@@ -238,6 +238,15 @@ else
 				erfolg "TraffMonetizer wurde eingerichtet"
 			else
 				fehler "TraffMonetizer konnte nicht eingerichtet werden"
+			fi
+			;;
+		Repocket)
+			repocketmail=$(whiptail --title "Repocket E-Mail" --inputbox "Gebe deine Repocket E-Mail adresse an: " 20 70 3>&1 1>&2 2>&3)
+			repocketspass=$(whiptail --title "Repocket Password" --passwordbox "Gebe dein Repocket Passwort ein: " 20 70 3>&1 1>&2 2>&3)
+			if docker rm -f repocket || true && docker run -d --name repocket -e RP_MAIL="$repocketmail" -e RP_PASSWORD="$repocketspass" --restart always repocket/repocket; then
+				erfolg "Repocket wurde eingerichtet"
+			else
+				fehler "Repocket konnte nicht eingerichtet werden"
 			fi
 			;;
 			#########################
