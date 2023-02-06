@@ -354,8 +354,8 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
 				# check if restart script is already configured
 				if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
 					# add restart script, reboot and update to crontab
-					echo "0 * * * * /bin/bash /root/ebesucher/restart.sh
-@reboot /bin/bash /root/ebesucher/restart.sh
+					echo "0 * * * * /bin/bash -x /root/ebesucher/restart.sh  > /var/log/ebesucher_restart.log 2>&1
+@reboot /bin/bash /root/ebesucher/restart.sh  > /var/log/ebesucher_restart.log 2>&1
 0 0 * * 0 reboot
 0 4 * * * /bin/bash /root/update_system.sh" >>/tmp/ebesucher
 					# Let cron reload the new configured crontab
@@ -464,8 +464,8 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
 				# check if restart script is already configured
 				if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
 					# add restart script
-					echo "0 * * * * /bin/bash /home/$linux_user/ebesucher/restart.sh
-@reboot /bin/bash /home/$linux_user/ebesucher/restart.sh" >>/tmp/ebesucher
+					echo "0 * * * * /bin/bash -x /home/$linux_user/ebesucher/restart.sh  > /var/log/ebesucher_restart.log 2>&1
+@reboot /bin/bash /home/$linux_user/ebesucher/restart.sh  > /var/log/ebesucher_restart.log 2>&1" >>/tmp/ebesucher
 					# Let cron reload the new configured crontab
 					crontab /tmp/ebesucher
 					# delete the export
