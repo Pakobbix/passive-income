@@ -40,119 +40,139 @@ URLlink() {
 config="/opt/Passive-Income/NotificationHandler/config"
 
 setup_config() {
-	messagehandler=$(
-		whiptail --title "Wähle den Notifier" --menu "Nehme hier die Art der Benachrichtung die du haben willst." 20 100 9 \
-			"SurfbarName" "" \
-			"Discord" "" \
-			"Telegram" "" \
-			"Apprise" "" \
-			"NextcloudTalk" "" \
-			"PushBullet" "" \
-			"Email" "" \
-			"Rocket.Chat" "" \
-			"Abbrechen" "" 3>&2 2>&1 1>&3
-	)
-	case "$messagehandler" in
-	SurfbarName)
-		surflink=$(whiptail --title "Surfbar Link" --inputbox "Gebe hier den Namen deiner Surfbar ein\nBeispiel:\nHttps://www.ebesucher.de/surfbar/MeinSurfLink\nName ist hierbei: MeinSurfLink\nEs können auch mehrere eingegeben werden." 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$surflink" ]; then
-			sed -i "s/SurfbarName=.*/SurfbarName=\"$surflink\"/g" $config
-		fi
-		;;
-	Discord)
-		dishook=$(whiptail --title "Discord Webhook URL" --inputbox "Gebe hier deine Discord Webhook URL ein" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$dishook" ]; then
-			sed -i "s|Discord_WebHookLink=.*|Discord_WebHookLink=\"$dishook\"|g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Discord\"/g" $config
-		fi
-		;;
-	Telegram)
-		T_UI=$(whiptail --title "Telegram USER ID" --inputbox "Gebe hier deine Telegram USERID ein" 16 100 3>&2 2>&1 1>&3)
-		T_BotToken=$(whiptail --title "Telegram Bot Token" --inputbox "Gebe hier deinen Telegram Bot Token ein" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$T_UI" ]; then
-			sed -i "s/Telegram_UID=.*/Telegram_UID=\"$T_UI\"/g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Telegram\"/g" $config
-		fi
-		if [ -n "$T_BotToken" ]; then
-			sed -i "s/Telegram_BT=.*/Telegram_BT=\"$T_BotToken\"/g" $config
-		fi
-		;;
-	Apprise)
-		AppRise_URL=$(whiptail --title "AppRise URL" --inputbox "Gebe hier die AppRise URL ein\nNötig ist hier die IP:Port. Beispiel:\n192.168.5.21:8000" 16 100 3>&2 2>&1 1>&3)
-		AppRise_URL_TAG=$(whiptail --title "AppRise Tag" --inputbox "Gebe hier einen AppRise Tag ein (Optional! Achtung, ohne Tag\nwerden alle Konfigurierten Methoden in Apprise genutzt)" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$AppRise_URL" ]; then
-			sed -i "s|AppRiseURL=.*|AppRiseURL=\"$AppRise_URL/notify/apprise\"|g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Apprise\"/g" $config
-		fi
-		if [ -n "$AppRise_URL_TAG" ]; then
-			sed -i "s/AppRiseTAG=.*/AppRiseTAG=\"$AppRise_URL_TAG\"/g" $config
-		fi
-		;;
-	NextcloudTalk)
-		NextcloudDomain=$(whiptail --title "Nextcloud Domain" --inputbox "Gebe hier deine Nextcloud Domain/IP:Port ein\nBeispiel: 10.0.0.4:85 oder\nhttps://cloud.zephyre.one" 16 100 3>&2 2>&1 1>&3)
-		NextcloudTalkToken=$(whiptail --title "Nextcloud Talk Token" --inputbox "Gebe hier deinen Nextcloud Talk Chatroom Token ein\nhttps://cloud.zephyre.one/call/9gp9y99i\n9gp9y99i ist der benötigte Token" 16 100 3>&2 2>&1 1>&3)
-		NextcloudUser=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier deinen Nextcloud User ein der die Nachricht schreiben soll.\nDer User muss dem Chatroom hinzugefügt werden!" 16 100 3>&2 2>&1 1>&3)
-		NextcloudPassword=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe hier das Passwort von dem Nextcloud User ein" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$NextcloudDomain" ]; then
-			sed -i "s|NextcloudDomain=.*|NextcloudDomain=\"$NextcloudDomain\"|g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"NextCloud\"/g" $config
-		fi
-		if [ -n "$NextcloudTalkToken" ]; then
-			sed -i "s/NextcloudTalkToken=.*/NextcloudTalkToken=\"$NextcloudTalkToken\"/g" $config
-		fi
-		if [ -n "$NextcloudUser" ]; then
-			sed -i "s/NextcloudUser=.*/NextcloudUser=\"$NextcloudUser\"/g" $config
-		fi
-		if [ -n "$NextcloudPassword" ]; then
-			sed -i "s/NextcloudPassword=.*/NextcloudPassword=\"$NextcloudPassword\"/g" $config
-		fi
-		;;
-	PushBullet)
-		PBToken=$(whiptail --title "Pushbullet Token" --inputbox "Gebe hier deinen Pushbullet Token ein" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$PBToken" ]; then
-			sed -i "s/PushBulletToken=.*/PushBulletToken=\"$PBToken\"/g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"PushBullet\"/g" $config
-		fi
-		;;
-	Email)
-		smtpURL=$(whiptail --title "Nextcloud Domain" --inputbox "Gebe hier die SMTP Domain ein" 16 100 3>&2 2>&1 1>&3)
-		smtpPORT=$(whiptail --title "Nextcloud Talk Token" --inputbox "Gebe hier den SMTP Port an" 16 100 3>&2 2>&1 1>&3)
-		mailfrom=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier die E-Mail an, die die Nachricht verschicken soll" 16 100 3>&2 2>&1 1>&3)
-		mailrcpt=$(whiptail --title "Nextcloud Password" --inputbox "Gebe hier die E-Mail an, die die Nachricht erhalten soll" 16 100 3>&2 2>&1 1>&3)
-		mailuser=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier den User für die E-Mail an" 16 100 3>&2 2>&1 1>&3)
-		mailpass=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe das Passwort des Users ein" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$smtpURL" ]; then
-			sed -i "s/smtpURL=.*/smtpURL=\"$smtpURL\"/g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Email\"/g" $config
-		fi
-		if [ -n "$smtpPORT" ]; then
-			sed -i "s/smtpPORT=.*/smtpPORT=\"$smtpPORT\"/g" $config
-		fi
-		if [ -n "$mailfrom" ]; then
-			sed -i "s/mailfrom=.*/mailfrom=\"$mailfrom\"/g" $config
-		fi
-		if [ -n "$mailrcpt" ]; then
-			sed -i "s/mailrcpt=.*/mailrcpt=\"$mailrcpt\"/g" $config
-		fi
-		if [ -n "$mailuser" ]; then
-			sed -i "s/mailuser=.*/mailuser=\"$mailuser\"/g" $config
-		fi
-		if [ -n "$mailpass" ]; then
-			sed -i "s/mailpass=.*/mailpass=\"$mailpass\"/g" $config
-		fi
-		;;
-	Rocket.Chat)
-		RCHOOK=$(whiptail --title "Rocket Chat Webhook" --inputbox "Gebe hier deine Rocket.Chat Webhook ein" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$RCHOOK" ]; then
-			sed -i "s/RocketChatHook=.*/RocketChatHook=\"$RCHOOK\"/g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Rocket.Chat\"/g" $config
-		fi
-		;;
-	Abbrechen)
-		exit 0
-		;;
-	esac
-	exit
+	while true; do
+		messagehandler=$(
+			whiptail --title "Wähle den Notifier" --menu "Nehme hier die Art der Benachrichtung die du haben willst." 20 100 9 \
+				"SurfbarName" "" \
+				"Discord" "" \
+				"Telegram" "" \
+				"Apprise" "" \
+				"NextcloudTalk" "" \
+				"PushBullet" "" \
+				"Email" "" \
+				"Rocket.Chat" "" \
+				"CronErstellen" \
+				"Beenden" "" 3>&2 2>&1 1>&3
+		)
+		case "$messagehandler" in
+		CronErstellen)
+			cronloc="/tmp/crontab"
+			curr_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+			scriptname=$(echo "$0" | sed 's/\.\///g')
+			crontab -l "$cronloc"
+			if grep -q "notifier.sh" $cronloc; then
+				if whiptail --title "Eintrag bereits vorhanden" --yesno "Es ist bereits ein eintrag für den notifier vorhanden, möchtest du diesen überschreiben?" 20 100; then
+					sed -i "s|.*notifier.sh.*|10,20,30,40,50 * * * * /bin/bash $curr_dir/$scriptname|g" "$cronloc"
+					crontab "$cronloc"
+				fi
+			else
+				echo "10,20,30,40,50 * * * * /bin/bash $curr_dir/$scriptname|g" >>"$cronloc"
+				crontab "$cronloc"
+			fi
+			;;
+		SurfbarName)
+			surflink=$(whiptail --title "Surfbar Link" --inputbox "Gebe hier den Namen deiner Surfbar ein\nBeispiel:\nHttps://www.ebesucher.de/surfbar/MeinSurfLink\nName ist hierbei: MeinSurfLink\nEs können auch mehrere eingegeben werden." 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$surflink" ]; then
+				sed -i "s/SurfbarName=.*/SurfbarName=\"$surflink\"/g" $config
+			fi
+			;;
+		Discord)
+			dishook=$(whiptail --title "Discord Webhook URL" --inputbox "Gebe hier deine Discord Webhook URL ein" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$dishook" ]; then
+				sed -i "s|Discord_WebHookLink=.*|Discord_WebHookLink=\"$dishook\"|g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"Discord\"/g" $config
+			fi
+			;;
+		Telegram)
+			T_UI=$(whiptail --title "Telegram USER ID" --inputbox "Gebe hier deine Telegram USERID ein" 16 100 3>&2 2>&1 1>&3)
+			T_BotToken=$(whiptail --title "Telegram Bot Token" --inputbox "Gebe hier deinen Telegram Bot Token ein" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$T_UI" ]; then
+				sed -i "s/Telegram_UID=.*/Telegram_UID=\"$T_UI\"/g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"Telegram\"/g" $config
+			fi
+			if [ -n "$T_BotToken" ]; then
+				sed -i "s/Telegram_BT=.*/Telegram_BT=\"$T_BotToken\"/g" $config
+			fi
+			;;
+		Apprise)
+			AppRise_URL=$(whiptail --title "AppRise URL" --inputbox "Gebe hier die AppRise URL ein\nNötig ist hier die IP:Port. Beispiel:\n192.168.5.21:8000" 16 100 3>&2 2>&1 1>&3)
+			AppRise_URL_TAG=$(whiptail --title "AppRise Tag" --inputbox "Gebe hier einen AppRise Tag ein (Optional! Achtung, ohne Tag\nwerden alle Konfigurierten Methoden in Apprise genutzt)" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$AppRise_URL" ]; then
+				sed -i "s|AppRiseURL=.*|AppRiseURL=\"$AppRise_URL/notify/apprise\"|g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"Apprise\"/g" $config
+			fi
+			if [ -n "$AppRise_URL_TAG" ]; then
+				sed -i "s/AppRiseTAG=.*/AppRiseTAG=\"$AppRise_URL_TAG\"/g" $config
+			fi
+			;;
+		NextcloudTalk)
+			NextcloudDomain=$(whiptail --title "Nextcloud Domain" --inputbox "Gebe hier deine Nextcloud Domain/IP:Port ein\nBeispiel: 10.0.0.4:85 oder\nhttps://cloud.zephyre.one" 16 100 3>&2 2>&1 1>&3)
+			NextcloudTalkToken=$(whiptail --title "Nextcloud Talk Token" --inputbox "Gebe hier deinen Nextcloud Talk Chatroom Token ein\nhttps://cloud.zephyre.one/call/9gp9y99i\n9gp9y99i ist der benötigte Token" 16 100 3>&2 2>&1 1>&3)
+			NextcloudUser=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier deinen Nextcloud User ein der die Nachricht schreiben soll.\nDer User muss dem Chatroom hinzugefügt werden!" 16 100 3>&2 2>&1 1>&3)
+			NextcloudPassword=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe hier das Passwort von dem Nextcloud User ein" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$NextcloudDomain" ]; then
+				sed -i "s|NextcloudDomain=.*|NextcloudDomain=\"$NextcloudDomain\"|g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"NextCloud\"/g" $config
+			fi
+			if [ -n "$NextcloudTalkToken" ]; then
+				sed -i "s/NextcloudTalkToken=.*/NextcloudTalkToken=\"$NextcloudTalkToken\"/g" $config
+			fi
+			if [ -n "$NextcloudUser" ]; then
+				sed -i "s/NextcloudUser=.*/NextcloudUser=\"$NextcloudUser\"/g" $config
+			fi
+			if [ -n "$NextcloudPassword" ]; then
+				sed -i "s/NextcloudPassword=.*/NextcloudPassword=\"$NextcloudPassword\"/g" $config
+			fi
+			;;
+		PushBullet)
+			PBToken=$(whiptail --title "Pushbullet Token" --inputbox "Gebe hier deinen Pushbullet Token ein" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$PBToken" ]; then
+				sed -i "s/PushBulletToken=.*/PushBulletToken=\"$PBToken\"/g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"PushBullet\"/g" $config
+			fi
+			;;
+		Email)
+			smtpURL=$(whiptail --title "Nextcloud Domain" --inputbox "Gebe hier die SMTP Domain ein" 16 100 3>&2 2>&1 1>&3)
+			smtpPORT=$(whiptail --title "Nextcloud Talk Token" --inputbox "Gebe hier den SMTP Port an" 16 100 3>&2 2>&1 1>&3)
+			mailfrom=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier die E-Mail an, die die Nachricht verschicken soll" 16 100 3>&2 2>&1 1>&3)
+			mailrcpt=$(whiptail --title "Nextcloud Password" --inputbox "Gebe hier die E-Mail an, die die Nachricht erhalten soll" 16 100 3>&2 2>&1 1>&3)
+			mailuser=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier den User für die E-Mail an" 16 100 3>&2 2>&1 1>&3)
+			mailpass=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe das Passwort des Users ein" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$smtpURL" ]; then
+				sed -i "s/smtpURL=.*/smtpURL=\"$smtpURL\"/g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"Email\"/g" $config
+			fi
+			if [ -n "$smtpPORT" ]; then
+				sed -i "s/smtpPORT=.*/smtpPORT=\"$smtpPORT\"/g" $config
+			fi
+			if [ -n "$mailfrom" ]; then
+				sed -i "s/mailfrom=.*/mailfrom=\"$mailfrom\"/g" $config
+			fi
+			if [ -n "$mailrcpt" ]; then
+				sed -i "s/mailrcpt=.*/mailrcpt=\"$mailrcpt\"/g" $config
+			fi
+			if [ -n "$mailuser" ]; then
+				sed -i "s/mailuser=.*/mailuser=\"$mailuser\"/g" $config
+			fi
+			if [ -n "$mailpass" ]; then
+				sed -i "s/mailpass=.*/mailpass=\"$mailpass\"/g" $config
+			fi
+			;;
+		Rocket.Chat)
+			RCHOOK=$(whiptail --title "Rocket Chat Webhook" --inputbox "Gebe hier deine Rocket.Chat Webhook ein" 16 100 3>&2 2>&1 1>&3)
+			if [ -n "$RCHOOK" ]; then
+				sed -i "s/RocketChatHook=.*/RocketChatHook=\"$RCHOOK\"/g" $config
+				sed -i "s/NotificationHandler=.*/NotificationHandler=\"Rocket.Chat\"/g" $config
+			fi
+			;;
+		Beenden)
+			break
+			exit 0
+			;;
+		esac
+		break
+		exit
+	done
 }
 
 while getopts ":hc" option; do
