@@ -54,7 +54,7 @@ setup_config() {
 	)
 	case "$messagehandler" in
 	SurfbarName)
-		surflink=$(whiptail --title "Surfbar Link" --inputbox "Gebe hier den Namen deiner Surfbar ein\nBeispiel:\nHttps://www.ebesucher.de/surfbar/MeinSurfLink\nName ist hierbei: MeinSurfLink" 16 100 3>&2 2>&1 1>&3)
+		surflink=$(whiptail --title "Surfbar Link" --inputbox "Gebe hier den Namen deiner Surfbar ein\nBeispiel:\nHttps://www.ebesucher.de/surfbar/MeinSurfLink\nName ist hierbei: MeinSurfLink\nEs können auch mehrere eingegeben werden." 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$surflink" ]; then
 			sed -i "s/SurfbarName=.*/SurfbarName=\"$surflink\"/g" $config
 		fi
@@ -196,115 +196,118 @@ if [ -z "$SurfbarName" ]; then
 	setup_config
 fi
 
-ProcessID=$(pgrep -f "surfbar/$SurfbarName")
+for SurfbarLinks in $SurfbarName; do
 
-case $NotificationHandler in
-Discord)
-	if [ -z "$Discord_WebHookLink" ]; then
-		fehler "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
-		echo
-		Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
-		URLlink "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"Ebesucher ist Abgestürzt.\n$SurfbarName läuft nicht mehr\"}" "$Discord_WebHookLink" &>/dev/null
-		else
+	ProcessID=$(pgrep -f "surfbar/$SurfbarLinks")
+
+	case $NotificationHandler in
+	Discord)
+		if [ -z "$Discord_WebHookLink" ]; then
+			fehler "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
+			echo
+			Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
+			URLlink "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
 			exit 1
-		fi
-	fi
-	;;
-Telegram)
-	if [ -z "$Telegram_UID" ] || [ -z "$Telegram_BT" ]; then
-		fehler "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
-		echo
-		Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
-		URLlink "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			curl -X POST -H 'Content-Type: application/json' -d '{"chat_id": "'"$Telegram_UID"'", "text": "This is a test from curl", "disable_notification": true}' https://api.telegram.org/bot$Telegram_BT/sendMessage
 		else
-			exit 1
-		fi
-	fi
-	;;
-Apprise)
-	if [ -z "$AppRiseURL" ]; then
-		fehler "Fehler! AppRise wurde ausgewählt, aber keine URL angegeben!"
-		echo
-		Hinweis "Eine Anleitung für AppRise findet ihr hier"
-		URLlink "https://github.com/caronc/apprise/wiki/config"
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			if [ -n "$AppRiseTAG" ]; then
-				curl -d '{"body":"'"Ebesucher Container $SurfbarName ist down"'", "title":"Passive-Income Notification: Ebesucher ist Abgestürzt","tag":"'"$AppRiseTAG"'"}' -H "Content-Type: application/json" "$AppRiseURL" &>/dev/null
+			if [ -z "$ProcessID" ]; then
+				curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"Ebesucher ist Abgestürzt.\n$SurfbarLinks läuft nicht mehr\"}" "$Discord_WebHookLink" &>/dev/null
 			else
-				curl -d '{"body":"'"Ebesucher Container $SurfbarName ist down"'", "title":"Passive-Income Notification: Ebesucher ist Abgestürzt","tag":"all"}' -H "Content-Type: application/json" "$AppRiseURL" &>/dev/null
+				exit 1
 			fi
-		else
+		fi
+		;;
+	Telegram)
+		if [ -z "$Telegram_UID" ] || [ -z "$Telegram_BT" ]; then
+			fehler "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
+			echo
+			Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
+			URLlink "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
 			exit 1
-		fi
-	fi
-	;;
-NextCloud)
-	if [ -z "$NextcloudUser" ] || [ -z "$NextcloudPassword" ] || [ -z "$NextcloudDomain" ] || [ -z "$NextcloudTalkToken" ]; then
-		echo "Eine oder mehrere Variablen (NextcloudUser, NextcloudPassword, NextcloudDomain, und/oder NextcloudTalkToken) wurden nicht angegeben. Beende NotificationHandler!."
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			curl -d '{"token":"'"$NextcloudTalkToken"'", "message":"'"Passive-Income Notification: Ebesucher ist Abgestürzt\nEbesucher Container $SurfbarName ist down"'"}' -H "Content-Type: application/json" -H "Accept:application/json" -H "OCS-APIRequest:true" -u "$NextcloudUser:$NextcloudPassword" "$NextcloudDomain"/ocs/v1.php/apps/spreed/api/v1/chat/tokenid &>/dev/null
-		fi
-	fi
-	;;
-PushBullet)
-	if [ -z "$PushBulletToken" ]; then
-		fehler "Fehler! PushBullet wurde ausgewählt, aber kein Token angegeben!"
-		echo
-		Hinweis "Eine Anleitung für PushBullet findet ihr hier"
-		URLlink "https://www.pushbullet.com/"
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			curl -u "$PushBulletToken": -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "note", "title": "Passive-Income Notification: Ebesucher ist Abgestürzt", "body": "Ebesucher Container '"$SurfbarName"' ist down"}'
 		else
-			exit 1
+			if [ -z "$ProcessID" ]; then
+				curl -X POST -H 'Content-Type: application/json' -d '{"chat_id": "'"$Telegram_UID"'", "text": "This is a test from curl", "disable_notification": true}' https://api.telegram.org/bot$Telegram_BT/sendMessage
+			else
+				exit 1
+			fi
 		fi
-	fi
-	;;
-Email)
-	if [ -z "$smtpURL" ] || [ -z "$smtpPORT" ] || [ -z "$mailfrom" ] || [ -z "$mailrcpt" ] || [ -z "$mailuser" ] || [ -z "$mailpass" ]; then
-		echo "Fehler! Mail wurde ausgewählt, aber eines oder mehrere Variablen leer gelassen!"
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			echo "From: Passive-Income $mailfrom
+		;;
+	Apprise)
+		if [ -z "$AppRiseURL" ]; then
+			fehler "Fehler! AppRise wurde ausgewählt, aber keine URL angegeben!"
+			echo
+			Hinweis "Eine Anleitung für AppRise findet ihr hier"
+			URLlink "https://github.com/caronc/apprise/wiki/config"
+			exit 1
+		else
+			if [ -z "$ProcessID" ]; then
+				if [ -n "$AppRiseTAG" ]; then
+					curl -d '{"body":"'"Ebesucher Container $SurfbarLinks ist down"'", "title":"Passive-Income Notification: Ebesucher ist Abgestürzt","tag":"'"$AppRiseTAG"'"}' -H "Content-Type: application/json" "$AppRiseURL" &>/dev/null
+				else
+					curl -d '{"body":"'"Ebesucher Container $SurfbarLinks ist down"'", "title":"Passive-Income Notification: Ebesucher ist Abgestürzt","tag":"all"}' -H "Content-Type: application/json" "$AppRiseURL" &>/dev/null
+				fi
+			else
+				exit 1
+			fi
+		fi
+		;;
+	NextCloud)
+		if [ -z "$NextcloudUser" ] || [ -z "$NextcloudPassword" ] || [ -z "$NextcloudDomain" ] || [ -z "$NextcloudTalkToken" ]; then
+			echo "Eine oder mehrere Variablen (NextcloudUser, NextcloudPassword, NextcloudDomain, und/oder NextcloudTalkToken) wurden nicht angegeben. Beende NotificationHandler!."
+			exit 1
+		else
+			if [ -z "$ProcessID" ]; then
+				curl -d '{"token":"'"$NextcloudTalkToken"'", "message":"'"Passive-Income Notification: Ebesucher ist Abgestürzt\nEbesucher Container $SurfbarLinks ist down"'"}' -H "Content-Type: application/json" -H "Accept:application/json" -H "OCS-APIRequest:true" -u "$NextcloudUser:$NextcloudPassword" "$NextcloudDomain"/ocs/v1.php/apps/spreed/api/v1/chat/tokenid &>/dev/null
+			fi
+		fi
+		;;
+	PushBullet)
+		if [ -z "$PushBulletToken" ]; then
+			fehler "Fehler! PushBullet wurde ausgewählt, aber kein Token angegeben!"
+			echo
+			Hinweis "Eine Anleitung für PushBullet findet ihr hier"
+			URLlink "https://www.pushbullet.com/"
+			exit 1
+		else
+			if [ -z "$ProcessID" ]; then
+				curl -u "$PushBulletToken": -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "note", "title": "Passive-Income Notification: Ebesucher ist Abgestürzt", "body": "Ebesucher Container '"$SurfbarLinks"' ist down"}'
+			else
+				exit 1
+			fi
+		fi
+		;;
+	Email)
+		if [ -z "$smtpURL" ] || [ -z "$smtpPORT" ] || [ -z "$mailfrom" ] || [ -z "$mailrcpt" ] || [ -z "$mailuser" ] || [ -z "$mailpass" ]; then
+			echo "Fehler! Mail wurde ausgewählt, aber eines oder mehrere Variablen leer gelassen!"
+			exit 1
+		else
+			if [ -z "$ProcessID" ]; then
+				echo "From: Passive-Income $mailfrom
 To: $mailrcpt $mailrcpt
 Subject: Passive-Income Notification: Ebesucher ist Abgestürzt
 
 Hi $mailrcpt,
-Your Ebesucher Container $SurfbarName ist abgestürzt und läuft nicht mehr.
+Your Ebesucher Container $SurfbarLinks ist abgestürzt und läuft nicht mehr.
 Bye!" >/root/pain_watchmail
-			curl "smtps://$smtpURL:$smtpPORT" --mail-from "$mailfrom" --mail-rcpt "$mailrcpt" -T /root/pain_watchmail -u "$mailuser:$mailpass" --ssl-reqd --insecure --show-error -s
-		else
-			exit 1
+				curl "smtps://$smtpURL:$smtpPORT" --mail-from "$mailfrom" --mail-rcpt "$mailrcpt" -T /root/pain_watchmail -u "$mailuser:$mailpass" --ssl-reqd --insecure --show-error -s
+			else
+				exit 1
+			fi
 		fi
-	fi
-	;;
-Rocket.Chat)
-	if [ -z "$RocketChatHook" ]; then
-		fehler "Fehler! RocketChat wurde ausgewählt, aber keine WebHook angegeben!"
-		echo
-		Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
-		URLlink "https://docs.rocket.chat/use-rocket.chat/rocket.chat-workspace-administration/integrations"
-		exit 1
-	else
-		if [ -z "$ProcessID" ]; then
-			curl -X POST -H 'Content-Type: application/json' --data '{"text":"Passive-Income Notification: Ebesucher ist Abgestürzt","attachments":[{"title":"Passive-Income Notification: Ebesucher ist Abgestürzt","text":"Ebesucher Container '"$SurfbarName"' ist down","color":"#764FA5"}]}' "$RocketChatHook"
-		else
+		;;
+	Rocket.Chat)
+		if [ -z "$RocketChatHook" ]; then
+			fehler "Fehler! RocketChat wurde ausgewählt, aber keine WebHook angegeben!"
+			echo
+			Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
+			URLlink "https://docs.rocket.chat/use-rocket.chat/rocket.chat-workspace-administration/integrations"
 			exit 1
+		else
+			if [ -z "$ProcessID" ]; then
+				curl -X POST -H 'Content-Type: application/json' --data '{"text":"Passive-Income Notification: Ebesucher ist Abgestürzt","attachments":[{"title":"Passive-Income Notification: Ebesucher ist Abgestürzt","text":"Ebesucher Container '"$SurfbarLinks"' ist down","color":"#764FA5"}]}' "$RocketChatHook"
+			else
+				exit 1
+			fi
 		fi
-	fi
-	;;
-esac
+		;;
+	esac
+done
