@@ -3,8 +3,6 @@
 red='\033[0;31m'    # ${red}
 white='\033[0;37m'  # ${white}
 yellow='\033[0;33m' # ${yellow}
-green='\033[0;32m'  # ${green}
-blue='\033[0;34m'   # ${blue}
 lblue='\033[1;34m'  # ${lblue}
 cyan='\033[0;36m'   # ${cyan}
 purple='\033[0;35m' # ${purple}
