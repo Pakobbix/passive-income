@@ -49,25 +49,10 @@ setup_config() {
 				"PushBullet" "" \
 				"Email" "" \
 				"Rocket.Chat" "" \
-				"CronErstellen" \
+				"CronErstellen" "" \
 				"Beenden" "" 3>&2 2>&1 1>&3
 		)
 		case "$messagehandler" in
-		CronErstellen)
-			cronloc="/tmp/crontab"
-			curr_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-			scriptname=$(echo "$0" | sed 's/\.\///g')
-			crontab -l "$cronloc"
-			if grep -q "notifier.sh" $cronloc; then
-				if whiptail --title "Eintrag bereits vorhanden" --yesno "Es ist bereits ein eintrag für den notifier vorhanden, möchtest du diesen überschreiben?" 20 100; then
-					sed -i "s|.*notifier.sh.*|10,20,30,40,50 * * * * /bin/bash $curr_dir/$scriptname|g" "$cronloc"
-					crontab "$cronloc"
-				fi
-			else
-				echo "10,20,30,40,50 * * * * /bin/bash $curr_dir/$scriptname|g" >>"$cronloc"
-				crontab "$cronloc"
-			fi
-			;;
 		SurfbarName)
 			surflink=$(whiptail --title "Surfbar Link" --inputbox "Gebe hier den Namen deiner Surfbar ein\nBeispiel:\nHttps://www.ebesucher.de/surfbar/MeinSurfLink\nName ist hierbei: MeinSurfLink\nEs können auch mehrere eingegeben werden." 16 100 3>&2 2>&1 1>&3)
 			if [ -n "$surflink" ]; then
@@ -161,6 +146,21 @@ setup_config() {
 			if [ -n "$RCHOOK" ]; then
 				sed -i "s/RocketChatHook=.*/RocketChatHook=\"$RCHOOK\"/g" $config
 				sed -i "s/NotificationHandler=.*/NotificationHandler=\"Rocket.Chat\"/g" $config
+			fi
+			;;
+		CronErstellen)
+			cronloc="/tmp/crontab"
+			curr_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+			scriptname=$(echo "$0" | sed 's/\.\///g')
+			crontab -l "$cronloc"
+			if grep -q "notifier.sh" $cronloc; then
+				if whiptail --title "Eintrag bereits vorhanden" --yesno "Es ist bereits ein eintrag für den notifier vorhanden, möchtest du diesen überschreiben?" 20 100; then
+					sed -i "s|.*notifier.sh.*|10,20,30,40,50 * * * * /bin/bash $curr_dir/$scriptname|g" "$cronloc"
+					crontab "$cronloc"
+				fi
+			else
+				echo "10,20,30,40,50 * * * * /bin/bash $curr_dir/$scriptname|g" >>"$cronloc"
+				crontab "$cronloc"
 			fi
 			;;
 		Beenden)
