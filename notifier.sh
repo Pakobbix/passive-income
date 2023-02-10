@@ -24,29 +24,6 @@ Help() {
 	echo
 }
 
-while getopts ":hc:" option; do
-	case $option in
-	h) # display Help
-		Help
-		exit
-		;;
-	c) # Starte eine erneute Konfiguration
-		if ! [ -f "$config" ]; then
-			mkdir -p /opt/Passive-Income/NotificationHandler 2>/dev/null
-			wget -qO "$config" https://raw.githubusercontent.com/Pakobbix/passive-income/NotificationHandler/NotificationHandler/config
-		fi
-		echo "Neue Konfiguration"
-		setup_config
-		exit
-		;;
-	\?) # Invalid option
-		echo "Fehler: Ungültige Eingabe"
-		Help
-		exit
-		;;
-	esac
-done
-
 fehler() {
 	echo -e "${red}$1${white}"
 }
@@ -65,6 +42,7 @@ config="/opt/Passive-Income/NotificationHandler/config"
 setup_config() {
 	messagehandler=$(
 		whiptail --title "Wähle den Notifier" --menu "Nehme hier die Art der Benachrichtung die du haben willst." 20 100 9 \
+			"SurfbarName" "" \
 			"Discord" "" \
 			"Telegram" "" \
 			"Apprise" "" \
@@ -75,10 +53,16 @@ setup_config() {
 			"Abbrechen" "" 3>&2 2>&1 1>&3
 	)
 	case "$messagehandler" in
+	SurfbarName)
+		surflink=$(whiptail --title "Surfbar Link" --inputbox "Gebe hier den Namen deiner Surfbar ein\nBeispiel:\nHttps://www.ebesucher.de/surfbar/MeinSurfLink\nName ist hierbei: MeinSurfLink" 16 100 3>&2 2>&1 1>&3)
+		if [ -n "$surflink" ]; then
+			sed -i "s/SurfbarName=.*/SurfbarName=\"$surflink\"/g" $config
+		fi
+		;;
 	Discord)
 		dishook=$(whiptail --title "Discord Webhook URL" --inputbox "Gebe hier deine Discord Webhook URL ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$dishook" ]; then
-			sed -i "s/Discord_WebHookLink=.*/Discord_WebHookLink=\"$dishook\"/g" $config
+			sed -i "s|Discord_WebHookLink=.*|Discord_WebHookLink=\"$dishook\"|g" $config
 			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Discord\"/g" $config
 		fi
 		;;
@@ -94,24 +78,24 @@ setup_config() {
 		fi
 		;;
 	Apprise)
-		AppRise_URL=$(whiptail --title "AppRise URL" --inputbox "Gebe hier die AppRise URL ein" 16 100 3>&2 2>&1 1>&3)
+		AppRise_URL=$(whiptail --title "AppRise URL" --inputbox "Gebe hier die AppRise URL ein\nNötig ist hier die IP:Port. Beispiel:\n192.168.5.21:8000" 16 100 3>&2 2>&1 1>&3)
 		AppRise_URL_TAG=$(whiptail --title "AppRise Tag" --inputbox "Gebe hier einen AppRise Tag ein (Optional! Achtung, ohne Tag\nwerden alle Konfigurierten Methoden in Apprise genutzt)" 16 100 3>&2 2>&1 1>&3)
-		if [ -n "$T_UI" ]; then
-			sed -i "s/AppRiseURL=.*/AppRiseURL=\"$AppRise_URL\"/g" $config
+		if [ -n "$AppRise_URL" ]; then
+			sed -i "s|AppRiseURL=.*|AppRiseURL=\"$AppRise_URL/notify/apprise\"|g" $config
 			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Apprise\"/g" $config
 		fi
-		if [ -n "$T_BotToken" ]; then
+		if [ -n "$AppRise_URL_TAG" ]; then
 			sed -i "s/AppRiseTAG=.*/AppRiseTAG=\"$AppRise_URL_TAG\"/g" $config
 		fi
 		;;
 	NextcloudTalk)
-		NextcloudDomain=$(whiptail --title "Nextcloud Domain" --inputbox "Gebe hier deine Nextcloud Domain/IP ein" 16 100 3>&2 2>&1 1>&3)
-		NextcloudTalkToken=$(whiptail --title "Nextcloud Talk Token" --inputbox "Gebe hier deinen Nextcloud Talk Chatroom Token ein" 16 100 3>&2 2>&1 1>&3)
-		NextcloudUser=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier deinen Nextcloud User ein der die Nachricht schreiben soll" 16 100 3>&2 2>&1 1>&3)
+		NextcloudDomain=$(whiptail --title "Nextcloud Domain" --inputbox "Gebe hier deine Nextcloud Domain/IP:Port ein\nBeispiel: 10.0.0.4:85 oder\nhttps://cloud.zephyre.one" 16 100 3>&2 2>&1 1>&3)
+		NextcloudTalkToken=$(whiptail --title "Nextcloud Talk Token" --inputbox "Gebe hier deinen Nextcloud Talk Chatroom Token ein\nhttps://cloud.zephyre.one/call/9gp9y99i\n9gp9y99i ist der benötigte Token" 16 100 3>&2 2>&1 1>&3)
+		NextcloudUser=$(whiptail --title "Nextcloud User" --inputbox "Gebe hier deinen Nextcloud User ein der die Nachricht schreiben soll.\nDer User muss dem Chatroom hinzugefügt werden!" 16 100 3>&2 2>&1 1>&3)
 		NextcloudPassword=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe hier das Passwort von dem Nextcloud User ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$NextcloudDomain" ]; then
-			sed -i "s/NextcloudDomain=.*/NextcloudDomain=\"$NextcloudDomain\"/g" $config
-			sed -i "s/NotificationHandler=.*/NotificationHandler=\"NextcloudTalk\"/g" $config
+			sed -i "s|NextcloudDomain=.*|NextcloudDomain=\"$NextcloudDomain\"|g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"NextCloud\"/g" $config
 		fi
 		if [ -n "$NextcloudTalkToken" ]; then
 			sed -i "s/NextcloudTalkToken=.*/NextcloudTalkToken=\"$NextcloudTalkToken\"/g" $config
@@ -126,7 +110,7 @@ setup_config() {
 	PushBullet)
 		PBToken=$(whiptail --title "Pushbullet Token" --inputbox "Gebe hier deinen Pushbullet Token ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$PBToken" ]; then
-			sed -i "s/PushBulletToken==.*/PushBulletToken==\"$PBToken\"/g" $config
+			sed -i "s/PushBulletToken=.*/PushBulletToken=\"$PBToken\"/g" $config
 			sed -i "s/NotificationHandler=.*/NotificationHandler=\"PushBullet\"/g" $config
 		fi
 		;;
@@ -160,7 +144,7 @@ setup_config() {
 	Rocket.Chat)
 		RCHOOK=$(whiptail --title "Rocket Chat Webhook" --inputbox "Gebe hier deine Rocket.Chat Webhook ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$RCHOOK" ]; then
-			sed -i "s/RocketChatHook==.*/RocketChatHook==\"$RCHOOK\"/g" $config
+			sed -i "s/RocketChatHook=.*/RocketChatHook=\"$RCHOOK\"/g" $config
 			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Rocket.Chat\"/g" $config
 		fi
 		;;
@@ -168,7 +152,30 @@ setup_config() {
 		exit 0
 		;;
 	esac
+	exit
 }
+
+while getopts ":hc" option; do
+	case $option in
+	h) # display Help
+		Help
+		exit
+		;;
+	c) # Starte eine erneute Konfiguration
+		if ! [ -f "$config" ]; then
+			mkdir -p /opt/Passive-Income/NotificationHandler 2>/dev/null
+			wget -qO "$config" https://raw.githubusercontent.com/Pakobbix/passive-income/NotificationHandler/NotificationHandler/config
+		fi
+		setup_config
+		exit
+		;;
+	\?) # Invalid option
+		echo "Fehler: Ungültige Eingabe"
+		Help
+		exit
+		;;
+	esac
+done
 
 if ! [ -d "/opt/Passive-Income/NotificationHandler" ] || ! [ -f "$config" ]; then
 	mkdir -p /opt/Passive-Income/NotificationHandler 2>/dev/null
@@ -179,6 +186,13 @@ fi
 source "$config"
 
 if [ -z "$NotificationHandler" ]; then
+	setup_config
+fi
+
+if [ -z "$SurfbarName" ]; then
+	fehler "SurfbarName ist nicht gesetzt!"
+	Hinweis "Wenn du weiter drückst, wird die Konfiguration nochmal aufgerufen. Wähle hier dann SurfbarName um diesen zu Konfigurieren"
+	read -rp "Drücke eine beliebige Taste zum fortfahren"
 	setup_config
 fi
 
