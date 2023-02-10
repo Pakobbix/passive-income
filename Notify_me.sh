@@ -1,24 +1,85 @@
 #!/bin/bash
 
+red='\033[0;31m'    # ${red}
+white='\033[0;37m'  # ${white}
+yellow='\033[0;33m' # ${yellow}
+green='\033[0;32m'  # ${green}
+blue='\033[0;34m'   # ${blue}
+lblue='\033[1;34m'  # ${lblue}
+cyan='\033[0;36m'   # ${cyan}
+purple='\033[0;35m' # ${purple}
+
+Help() {
+	# Display Help
+	echo
+	echo -e "${purple}Benachrichtigungs Skript für Passive-Income (pain).${white}"
+	echo
+	echo "Ausführung: ./notify_me.sh"
+	echo
+	echo "Für erneute Configuration: ./notify_me.sh -c"
+	echo
+	echo "Argumente:"
+	echo -e "${yellow} -c${white}     ${lblue}Starte die Konfiguration erneut"
+	echo -e "${yellow} -h${white}     ${lblue}Zeige diese Hilfe"
+	echo
+}
+
+while getopts ":hc:" option; do
+	case $option in
+	h) # display Help
+		Help
+		exit
+		;;
+	c) # Starte eine erneute Konfiguration
+		if ! [ -f "$config" ]; then
+			mkdir -p /opt/Passive-Income/NotificationHandler 2>/dev/null
+			wget -qO "$config" https://raw.githubusercontent.com/Pakobbix/passive-income/NotificationHandler/NotificationHandler/config
+		fi
+		echo "Neue Konfiguration"
+		setup_config
+		exit
+		;;
+	\?) # Invalid option
+		echo "Fehler: Ungültige Eingabe"
+		Help
+		exit
+		;;
+	esac
+done
+
+fehler() {
+	echo -e "${red}$1${white}"
+}
+
+Hinweis() {
+	echo -e "${yellow}$1${white}"
+
+}
+
+URLlink() {
+	echo -e "${cyan}$1${white}"
+}
+
 config="/opt/Passive-Income/NotificationHandler/config"
 
-create_config() {
+setup_config() {
 	messagehandler=$(
-		whiptail --title "$(text_lang "058")" --menu "$(text_lang "059")" 20 100 9 \
-			"1)" "Discord" \
-			"2)" "Telegram" \
-			"3)" "Apprise" \
-			"4)" "NextcloudTalk" \
-			"5)" "PushBullet" \
-			"6)" "Email" \
-			"7)" "Rocket.Chat" \
-			"8)" "Abbrechen" 3>&2 2>&1 1>&3
+		whiptail --title "Wähle den Notifier" --menu "Nehme hier die Art der Benachrichtung die du haben willst." 20 100 9 \
+			"Discord" "" \
+			"Telegram" "" \
+			"Apprise" "" \
+			"NextcloudTalk" "" \
+			"PushBullet" "" \
+			"Email" "" \
+			"Rocket.Chat" "" \
+			"Abbrechen" "" 3>&2 2>&1 1>&3
 	)
 	case "$messagehandler" in
 	Discord)
 		dishook=$(whiptail --title "Discord Webhook URL" --inputbox "Gebe hier deine Discord Webhook URL ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$dishook" ]; then
 			sed -i "s/Discord_WebHookLink=.*/Discord_WebHookLink=\"$dishook\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Discord\"/g" $config
 		fi
 		;;
 	Telegram)
@@ -26,6 +87,7 @@ create_config() {
 		T_BotToken=$(whiptail --title "Telegram Bot Token" --inputbox "Gebe hier deinen Telegram Bot Token ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$T_UI" ]; then
 			sed -i "s/Telegram_UID=.*/Telegram_UID=\"$T_UI\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Telegram\"/g" $config
 		fi
 		if [ -n "$T_BotToken" ]; then
 			sed -i "s/Telegram_BT=.*/Telegram_BT=\"$T_BotToken\"/g" $config
@@ -36,6 +98,7 @@ create_config() {
 		AppRise_URL_TAG=$(whiptail --title "AppRise Tag" --inputbox "Gebe hier einen AppRise Tag ein (Optional! Achtung, ohne Tag\nwerden alle Konfigurierten Methoden in Apprise genutzt)" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$T_UI" ]; then
 			sed -i "s/AppRiseURL=.*/AppRiseURL=\"$AppRise_URL\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Apprise\"/g" $config
 		fi
 		if [ -n "$T_BotToken" ]; then
 			sed -i "s/AppRiseTAG=.*/AppRiseTAG=\"$AppRise_URL_TAG\"/g" $config
@@ -48,6 +111,7 @@ create_config() {
 		NextcloudPassword=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe hier das Passwort von dem Nextcloud User ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$NextcloudDomain" ]; then
 			sed -i "s/NextcloudDomain=.*/NextcloudDomain=\"$NextcloudDomain\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"NextcloudTalk\"/g" $config
 		fi
 		if [ -n "$NextcloudTalkToken" ]; then
 			sed -i "s/NextcloudTalkToken=.*/NextcloudTalkToken=\"$NextcloudTalkToken\"/g" $config
@@ -63,6 +127,7 @@ create_config() {
 		PBToken=$(whiptail --title "Pushbullet Token" --inputbox "Gebe hier deinen Pushbullet Token ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$PBToken" ]; then
 			sed -i "s/PushBulletToken==.*/PushBulletToken==\"$PBToken\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"PushBullet\"/g" $config
 		fi
 		;;
 	Email)
@@ -74,6 +139,7 @@ create_config() {
 		mailpass=$(whiptail --title "Nextcloud Password" --passwordbox "Gebe das Passwort des Users ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$smtpURL" ]; then
 			sed -i "s/smtpURL=.*/smtpURL=\"$smtpURL\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Email\"/g" $config
 		fi
 		if [ -n "$smtpPORT" ]; then
 			sed -i "s/smtpPORT=.*/smtpPORT=\"$smtpPORT\"/g" $config
@@ -95,6 +161,7 @@ create_config() {
 		RCHOOK=$(whiptail --title "Rocket Chat Webhook" --inputbox "Gebe hier deine Rocket.Chat Webhook ein" 16 100 3>&2 2>&1 1>&3)
 		if [ -n "$RCHOOK" ]; then
 			sed -i "s/RocketChatHook==.*/RocketChatHook==\"$RCHOOK\"/g" $config
+			sed -i "s/NotificationHandler=.*/NotificationHandler=\"Rocket.Chat\"/g" $config
 		fi
 		;;
 	Abbrechen)
@@ -103,16 +170,16 @@ create_config() {
 	esac
 }
 
-if ! [ -d "/opt/Passive-Income/NotificationHandler" ] || ! [ -f "$config" ] || ! source "$config" 2>/dev/null; then
+if ! [ -d "/opt/Passive-Income/NotificationHandler" ] || ! [ -f "$config" ]; then
 	mkdir -p /opt/Passive-Income/NotificationHandler 2>/dev/null
-	# wget blank CONFIG
-	create_config
+	wget -qO "$config" https://raw.githubusercontent.com/Pakobbix/passive-income/NotificationHandler/NotificationHandler/config
+	setup_config
 fi
 
 source "$config"
 
 if [ -z "$NotificationHandler" ]; then
-	create_config
+	setup_config
 fi
 
 ProcessID=$(pgrep -f "surfbar/$SurfbarName")
@@ -120,10 +187,10 @@ ProcessID=$(pgrep -f "surfbar/$SurfbarName")
 case $NotificationHandler in
 Discord)
 	if [ -z "$Discord_WebHookLink" ]; then
-		echo "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
+		fehler "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
 		echo
-		echo "Eine Anleitung für die Webhook findet ihr hier:"
-		echo "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
+		Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
+		URLlink "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
 		exit 1
 	else
 		if [ -z "$ProcessID" ]; then
@@ -135,10 +202,10 @@ Discord)
 	;;
 Telegram)
 	if [ -z "$Telegram_UID" ] || [ -z "$Telegram_BT" ]; then
-		echo "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
+		fehler "Fehler! Discord wurde ausgewählt, aber keine WebHook angegeben!"
 		echo
-		echo "Eine Anleitung für die Webhook findet ihr hier:"
-		echo "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
+		Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
+		URLlink "https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks#how-do-i-add-a-webhook-to-discord"
 		exit 1
 	else
 		if [ -z "$ProcessID" ]; then
@@ -150,10 +217,10 @@ Telegram)
 	;;
 Apprise)
 	if [ -z "$AppRiseURL" ]; then
-		echo "Fehler! AppRise wurde ausgewählt, aber keine URL angegeben!"
+		fehler "Fehler! AppRise wurde ausgewählt, aber keine URL angegeben!"
 		echo
-		echo "Eine Anleitung für AppRise findet ihr hier"
-		echo "https://github.com/caronc/apprise/wiki/config"
+		Hinweis "Eine Anleitung für AppRise findet ihr hier"
+		URLlink "https://github.com/caronc/apprise/wiki/config"
 		exit 1
 	else
 		if [ -z "$ProcessID" ]; then
@@ -179,10 +246,10 @@ NextCloud)
 	;;
 PushBullet)
 	if [ -z "$PushBulletToken" ]; then
-		echo "Fehler! PushBullet wurde ausgewählt, aber kein Token angegeben!"
+		fehler "Fehler! PushBullet wurde ausgewählt, aber kein Token angegeben!"
 		echo
-		echo "Eine Anleitung für PushBullet findet ihr hier"
-		echo "https://www.pushbullet.com/"
+		Hinweis "Eine Anleitung für PushBullet findet ihr hier"
+		URLlink "https://www.pushbullet.com/"
 		exit 1
 	else
 		if [ -z "$ProcessID" ]; then
@@ -192,7 +259,7 @@ PushBullet)
 		fi
 	fi
 	;;
-Mail)
+Email)
 	if [ -z "$smtpURL" ] || [ -z "$smtpPORT" ] || [ -z "$mailfrom" ] || [ -z "$mailrcpt" ] || [ -z "$mailuser" ] || [ -z "$mailpass" ]; then
 		echo "Fehler! Mail wurde ausgewählt, aber eines oder mehrere Variablen leer gelassen!"
 		exit 1
@@ -213,10 +280,10 @@ Bye!" >/root/pain_watchmail
 	;;
 Rocket.Chat)
 	if [ -z "$RocketChatHook" ]; then
-		echo "Fehler! RocketChat wurde ausgewählt, aber keine WebHook angegeben!"
+		fehler "Fehler! RocketChat wurde ausgewählt, aber keine WebHook angegeben!"
 		echo
-		echo "Eine Anleitung für die Webhook findet ihr hier:"
-		echo "https://docs.rocket.chat/use-rocket.chat/rocket.chat-workspace-administration/integrations"
+		Hinweis "Eine Anleitung für die Webhook findet ihr hier:"
+		URLlink "https://docs.rocket.chat/use-rocket.chat/rocket.chat-workspace-administration/integrations"
 		exit 1
 	else
 		if [ -z "$ProcessID" ]; then
