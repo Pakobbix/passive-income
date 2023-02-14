@@ -13,7 +13,7 @@ if [ -f /tmp/ebesucher_restart.lock ]; then
 fi
 
 # Erstelle Lockfile
-echo $$ > ebesucher_restart.lock
+echo $$ > /tmp/ebesucher_restart.lock
 
 # Ordner des Skripts
 git_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
