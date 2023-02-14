@@ -7,6 +7,14 @@ containername=ebesucher
 # Variable für die Maximale Nutzung von CPU Cores
 CPUcores=
 
+# Überprüfe ob bereits ein restart läuft
+if [ -f /tmp/ebesucher_restart.lock ]; then
+  exit
+fi
+
+# Erstelle Lockfile
+echo $$ > ebesucher_restart.lock
+
 # Ordner des Skripts
 git_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 # Wechsel in den Ordner
@@ -41,3 +49,4 @@ elif [[ $ram_avail -ge "5" ]]; then
 	docker_run "4g" "$CPUSet"
 fi
 
+rm -f /tmp/ebesucher_restart.lock
