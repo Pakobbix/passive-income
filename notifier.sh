@@ -243,7 +243,7 @@ for SurfbarLinks in $SurfbarName; do
 			exit 1
 		else
 			if [ -z "$ProcessID" ]; then
-				curl -X POST -H 'Content-Type: application/json' -d '{"chat_id": "'"$Telegram_UID"'", "text": "This is a test from curl", "disable_notification": true}' https://api.telegram.org/bot$Telegram_BT/sendMessage
+				curl -X POST -H 'Content-Type: application/json' -d '{"chat_id": "'"$Telegram_UID"'", "text": "'"Ebesucher auf $surflink"'", "disable_notification": true}' https://api.telegram.org/bot$Telegram_BT/sendMessage
 			else
 				exit 1
 			fi
@@ -287,6 +287,7 @@ for SurfbarLinks in $SurfbarName; do
 			exit 1
 		else
 			if [ -z "$ProcessID" ]; then
+				curl -X POST -H 'Content-Type: application/json' -d '{"chat_id": "'"$Telegram_UID"'", "text": "'"Ebesucher auf $surflink"'", "disable_notification": true}' https://api.telegram.org/bot$Telegram_BT/sendMessage
 				curl -u "$PushBulletToken": -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "note", "title": "Passive-Income Notification: Ebesucher ist Abgestürzt", "body": "Ebesucher Container '"$SurfbarLinks"' ist down"}'
 			else
 				exit 1
