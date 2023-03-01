@@ -8,6 +8,12 @@ erfolgreich=0
 fehler=0
 skip=0
 export DEBIAN_FRONTEND=noninteractive
+
+if [ "$(whoami)" != "root" ]; then
+  echo "Es ist leider erforderlich, dass das script als root ausgeführt wird!"
+  exit
+fi
+
 new_task() {
   echo -e "\n\n$(printf %"$(tput cols)"s | tr " " "=")\n$1\n$(printf %"$(tput cols)"s | tr " " "=")"
 }
@@ -44,11 +50,11 @@ inputbox() {
 }
 
 [ -d /etc/needrestart/ ] && sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf 2>/dev/null
+
 sudo echo
 if ! which whiptail >/dev/null; then
   sudo apt-get install whiptail -y
 fi
-linux_user=$(w | awk '{print $1}' | tail -n1)
 {
   echo 0
   sudo apt-get update >/dev/null
@@ -73,9 +79,6 @@ linux_user=$(w | awk '{print $1}' | tail -n1)
 if ! which docker >/dev/null; then
   messagebox "Kleinen Moment Geduld, Docker wird Installiert." "Das Fenster wird sich automatisch schließen, sobald Docker installiert wurde." &
   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin >/dev/null
-  messagebox "Docker wurde installiert" "Leider ist es notwendig, dass wir nun den PC Neustarten.\nNach dem Neustart, starte einfach von vorne. Das Skript wird dann aber durchlaufen"
-  sudo usermod -aG docker $linux_user
-  sudo reboot
 fi
 
 whiptail --title "Passive Income Helperskript" --msgbox "Dieses Skript richtet mehrere Einkommenshelfer für dich ein.
@@ -136,7 +139,7 @@ else
       ;;
     EarnAPP)
       wget -qO- https://brightdata.com/static/earnapp/install.sh >/tmp/earnapp.sh && echo "yes" | sudo bash /tmp/earnapp.sh
-      read -n1 -r -p "Drücke eine Taste, wenn du den Link im Browser geöffnet hast und das Gerät mit deinem Account verlinkt wurde..." key
+      read -n1 -r -p "Drücke eine Taste, wenn du den Link im Browser geöffnet hast und das Gerät mit deinem Account verlinkt wurde..."
       ;;
 
     Packetstream)
@@ -181,34 +184,24 @@ Ebesucher braucht leider etwas mehr Einrichtung. Aber keine Sorge, ich mach es d
 Zunächst erstellen wir einen Firefox Container. 
 Dieser soll im Hintergrund die Werbeseiten aufrufen."
 
-      if [ -d ~/ebesucher ]; then
+      if [ -d /root/ebesucher ]; then
         skip "Ordner ebesucher exestiert bereits"
-        if ! [ -f ~/ebesucher/config.zip ]; then
+        if ! [ -f /root/ebesucher/config.zip ]; then
           if whiptail --title "Alte config gefunden" --yesno "Es wurde bereits ein Firefox Profil angelegt, soll dieses gelöscht und überschrieben werden?" 20 100; then
-            rm -f ~/ebesucher/config.zip
-            wget -O ~/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
-            unzip ~/ebesucher/config.zip -d ~/ebesucher/
+            rm -f /root/ebesucher/config.zip
+            wget -O /root/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
+            unzip /root/ebesucher/config.zip -d /root/ebesucher/
           else
-            unzip ~/ebesucher/config.zip -d ~/ebesucher/
+            unzip /root/ebesucher/config.zip -d /root/ebesucher/
           fi
         fi
       else
-        if [ "$linux_user" == "root" ]; then
-          if mkdir /root/ebesucher; then
-            wget -O /root/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
-            unzip /root/ebesucher/config.zip -d /root/ebesucher/
-            erfolg "Ordner für ebesucher konnte erstellt werden"
-          else
-            fehler "Der Ordner für ebesucher konnte nicht angelegt werden"
-          fi
+        if mkdir /root/ebesucher; then
+          wget -O /root/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
+          unzip /root/ebesucher/config.zip -d /root/ebesucher/
+          erfolg "Ordner für ebesucher konnte erstellt werden"
         else
-          if mkdir /home/"$linux_user"/ebesucher; then
-            wget -O /home/"$linux_user"/ebesucher/config.zip https://github.com/Pakobbix/passive-income/raw/master/config.zip
-            unzip /home/"$linux_user"/ebesucher/config.zip -d /home/"$linux_user"/ebesucher/
-            erfolg "Ordner für ebesucher konnte erstellt werden"
-          else
-            fehler "Der Ordner für ebesucher konnte nicht angelegt werden"
-          fi
+          fehler "Der Ordner für ebesucher konnte nicht angelegt werden"
         fi
       fi
       ebesucher_docker() {
@@ -235,22 +228,22 @@ Gebe in das Feld deinen Ebesucher Nutzernamen ein und mache einen Haken bei Priv
 erstelle ich eine Sicherung der Firefox-Konfiguration"
       {
         echo 10
-        if [ -f ~/ebesucher/config.zip ]; then
-          rm -f ~/ebesucher/config.zip
+        if [ -f /root/ebesucher/config.zip ]; then
+          rm -f /root/ebesucher/config.zip
         fi
         echo 15
         docker stop ebesucher
         echo 25
-        cd ~/ebesucher/ || exit
+        cd /root/ebesucher/ || exit
         echo 30
         zip -r config.zip config/
         echo 60
-        wget -O ~/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
+        wget -O /root/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
         echo 80
-        chmod +x ~/ebesucher/restart.sh
-        bash ~/ebesucher/restart.sh
+        chmod +x /root/ebesucher/restart.sh
+        bash /root/ebesucher/restart.sh
         echo 90
-        sed -i "s/username=/&$nutzername/g" ~/ebesucher/restart.sh
+        sed -i "s/username=/&$nutzername/g" /root/ebesucher/restart.sh
         echo 100
       } | whiptail --gauge "Erstelle Sicherung und Lade Restarter Skript herunter" 6 50 0
 
@@ -263,47 +256,23 @@ Dies wird gemacht, damit sich nicht zuviel Müll ansammelt und um zu gewährleis
 dass es für immer läuft.
 Selbst wenn der Container mal abstürzen sollte, wird er nächste Stunde wieder neugestartet."
       crontab -l >/tmp/ebesucher 2>/dev/null
-      if [ "$linux_user" == "root" ]; then
-        if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
-          echo "0 * * * * /bin/bash /root/ebesucher/restart.sh
-          @reboot /bin/bash /root/ebesucher/restart.sh" >>/tmp/ebesucher
-        fi
-      else
-        if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
-          echo "0 * * * * /bin/bash /home/$linux_user/ebesucher/restart.sh
-          @reboot /bin/bash /home/$linux_user/ebesucher/restart.sh" >>/tmp/ebesucher
-          crontab /tmp/ebesucher
-          rm /tmp/ebesucher
-        fi
-        crontab -l >/tmp/rootcron
-        echo "0 0 * * 0 reboot" >>/tmp/rootcron
-        sudo crontab /tmp/rootcron
-        rm /tmp/rootcron
+      if ! grep -q "ebesucher/restart.sh" "/tmp/ebesucher"; then
+        echo "0 * * * * /bin/bash /root/ebesucher/restart.sh
+          @reboot /bin/bash /root/ebesucher/restart.sh
+          0 0 * * 0 reboot" >>/tmp/ebesucher
       fi
       ;;
     esac
   done
 fi
 
-if [ "$linux_user" == "root" ]; then
-  echo -e "#!/bin/bash\n\nexport DEBIAN_FRONTEND=noninteractive\n\nsudo apt-get update\n\nsudo apt-get upgrade -y\n\nsudo apt-get autoremove -y" >/root/update_system.sh
-  chmod +x /root/update_system.sh
-else
-  echo -e "#!/bin/bash\n\nexport DEBIAN_FRONTEND=noninteractive\n\nsudo apt-get update\n\nsudo apt-get upgrade -y\n\nsudo apt-get autoremove -y" >/home/"$linux_user"/update_system.sh
-  chmod +x /home/"$linux_user"/update_system.sh
-fi
+echo -e "#!/bin/bash\n\nexport DEBIAN_FRONTEND=noninteractive\n\nsudo apt-get update\n\nsudo apt-get upgrade -y\n\nsudo apt-get autoremove -y" >/root/update_system.sh
+chmod +x /root/update_system.sh
 if ! grep -q "update_system.sh" "/tmp/updatecron"; then
-  if [ "$linux_user" == "root" ]; then
-    crontab -l /tmp/updatecron
-    echo "0 4 * * * /bin/bash /root/update_system.sh" >>/tmp/updatecron
-    crontab /tmp/updatecron
-    rm /tmp/crontab
-  else
-    sudo crontab -l /tmp/updatecron
-    echo "0 4 * * * /bin/bash /home/$linux_user/update_system.sh" >>/tmp/updatecron
-    sudo crontab /tmp/updatecron
-    rm /tmp/updatecron
-  fi
+  crontab -l /tmp/updatecron
+  echo "0 4 * * * /bin/bash /root/update_system.sh" >>/tmp/updatecron
+  crontab /tmp/updatecron
+  rm /tmp/crontab
 fi
 if docker ps | grep "ebesucher\|traffmonetizer\|peer2profit\|IPRoyal\|packetstream\|honeygain" >/dev/null; then
   if docker run -d --name watchtower --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/localtime:/etc/localtime:ro containrrr/watchtower --cleanup --interval 86400; then
