@@ -74,7 +74,7 @@ fi
     sudo apt-get update
   fi
   echo 100
-} | whiptail --gauge "Aktualisiere System installiere Docker" 6 50 0
+} | whiptail --gauge "Aktualisiere System installiere Docker PPA" 6 50 0
 
 if ! which docker >/dev/null; then
   messagebox "Kleinen Moment Geduld, Docker wird Installiert." "Das Fenster wird sich automatisch schließen, sobald Docker installiert wurde." &
@@ -212,10 +212,17 @@ Dieser soll im Hintergrund die Werbeseiten aufrufen."
           fehler "Firefox-Ebesucher konnte nicht eingerichtet werden"
         fi
       }
+      while true; do
+        max_cores=$(grep -c processor /proc/cpuinfo)
+        cpucores=$(inputbox "Maximale CPU Cores" "Gebe hier an, wieviele CPU Kerne der Container Maximal nutzen darf. (zwischen 1 - $max_cores)")
+        if [ "$cpucores" -le "0" ] || [ "$cpucores" -gt "$max_cores" ]; then
+          messagebox "Ungültige Eingabe" "Es können nicht weniger als 0 oder mehr als $max_cores eingegeben werden"
+        else
+          break
+        fi
+      done
       ram_avail=$(bc <<<"scale=2;$(($(free | awk 'NR==2 {print $2}') / 1000000))")
-      if [[ $ram_avail -ge "2" ]]; then
-        ebesucher_docker "1g"
-      elif [[ $ram_avail -eq "4" ]]; then
+      if ((ram_avail >= 3 && ram_avail <= 4)); then
         ebesucher_docker "3g"
       elif [[ $ram_avail -ge "5" ]]; then
         ebesucher_docker "4g"
@@ -223,7 +230,7 @@ Dieser soll im Hintergrund die Werbeseiten aufrufen."
       messagebox "" "Oben Rechts im Firefox Browser, öffne das Ebesucher addon.
 Gebe in das Feld deinen Ebesucher Nutzernamen ein und mache einen Haken bei Privacy"
       nutzername=$(inputbox "Ebesucher Nutzername" "Gebe hier deinen Ebesucher Nutzernamen ein: ")
-      messagebox 'Schließt nun alle Tabs im Browser und fahrt fort.'
+      messagebox "" "Schließt nun alle Tabs im Browser und fahrt fort."
       messagebox "Erstelle Sicherungen" "Damit die Einstellungen auch für immer gespeichert werden,
 erstelle ich eine Sicherung der Firefox-Konfiguration"
       {
@@ -237,13 +244,15 @@ erstelle ich eine Sicherung der Firefox-Konfiguration"
         cd /root/ebesucher/ || exit
         echo 30
         zip -r config.zip config/
+        echo 50
+        wget -O /root/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh 2>&1 >/dev/null
         echo 60
-        wget -O /root/ebesucher/restart.sh https://raw.githubusercontent.com/Pakobbix/passive-income/master/restart.sh
-        echo 80
         chmod +x /root/ebesucher/restart.sh
-        bash /root/ebesucher/restart.sh
-        echo 90
+        echo 70
+        sed -i "s/CPUcores=/&$cpucores/g" /root/ebesucher/restart.sh
         sed -i "s/username=/&$nutzername/g" /root/ebesucher/restart.sh
+        echo 90
+        bash /root/ebesucher/restart.sh
         echo 100
       } | whiptail --gauge "Erstelle Sicherung und Lade Restarter Skript herunter" 6 50 0
 
@@ -260,6 +269,8 @@ Selbst wenn der Container mal abstürzen sollte, wird er nächste Stunde wieder 
         echo "0 * * * * /bin/bash /root/ebesucher/restart.sh
           @reboot /bin/bash /root/ebesucher/restart.sh
           0 0 * * 0 reboot" >>/tmp/ebesucher
+        crontab /tmp/ebesucher
+        rm /tmp/ebesucher
       fi
       ;;
     esac
@@ -268,12 +279,13 @@ fi
 
 echo -e "#!/bin/bash\n\nexport DEBIAN_FRONTEND=noninteractive\n\nsudo apt-get update\n\nsudo apt-get upgrade -y\n\nsudo apt-get autoremove -y" >/root/update_system.sh
 chmod +x /root/update_system.sh
+crontab -l >/tmp/updatecron
 if ! grep -q "update_system.sh" "/tmp/updatecron"; then
-  crontab -l /tmp/updatecron
   echo "0 4 * * * /bin/bash /root/update_system.sh" >>/tmp/updatecron
   crontab /tmp/updatecron
-  rm /tmp/crontab
+  rm /tmp/updatecron
 fi
+
 if docker ps | grep "ebesucher\|traffmonetizer\|peer2profit\|IPRoyal\|packetstream\|honeygain" >/dev/null; then
   if docker run -d --name watchtower --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/localtime:/etc/localtime:ro containrrr/watchtower --cleanup --interval 86400; then
     erfolg "Watchtower erfolgreich eingerichtet"
