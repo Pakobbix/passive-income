@@ -230,7 +230,8 @@ Dieser soll im Hintergrund die Werbeseiten aufrufen."
       messagebox "" "Oben Rechts im Firefox Browser, öffne das Ebesucher addon.
 Gebe in das Feld deinen Ebesucher Nutzernamen ein und mache einen Haken bei Privacy"
       nutzername=$(inputbox "Ebesucher Nutzername" "Gebe hier deinen Ebesucher Nutzernamen ein: ")
-      messagebox "" "Schließt nun alle Tabs im Browser und fahrt fort."
+      messagebox "" "Stellt noch in den Einstellungen von Firefox die Startseite auf eure Surfbar ein.
+Schließt nun alle Tabs im Browser und fahrt fort."
       messagebox "Erstelle Sicherungen" "Damit die Einstellungen auch für immer gespeichert werden,
 erstelle ich eine Sicherung der Firefox-Konfiguration"
       {
