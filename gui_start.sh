@@ -168,7 +168,7 @@ else
       ;;
     Traffmonetizer)
       trafftoken=$(whiptail --title "TraffMonetizer Token" --inputbox "Gebe deinen TraffMonetizer Token an: " 20 70 3>&1 1>&2 2>&3)
-      if docker rm -f traffmonetizer || true && docker run -d --name traffmonetizer --restart unless-stopped traffmonetizer/cli start accept --token "$trafftoken"; then
+      if docker rm -f traffmonetizer || true && docker run -d --name traffmonetizer --restart unless-stopped traffmonetizer/cli_v2 start accept --token "$trafftoken"; then
         erfolg "TraffMonetizer wurde eingerichtet"
       else
         fehler "TraffMonetizer konnte nicht eingerichtet werden"
